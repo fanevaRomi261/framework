@@ -41,42 +41,67 @@ public class FrontServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
         try {
             String url = request.getRequestURL().toString();
-            
+
             Mapping map = this.getMapping(url);
-            ModelView mv1 = this.getView(map);
+
+            String urlMv = this.getUrlMv(map);
+
             
-            RequestDispatcher disp = request.getRequestDispatcher("/jsp/" + mv1.getView());
+            HashMap<String,Object> dataMv = this.getDataMv(map);
+            
+            this.setAllAttribut(request, dataMv);
+
+            RequestDispatcher disp = request.getRequestDispatcher("/jsp/"+urlMv);
             disp.forward(request, response);
         } catch (Exception e) {
             out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    public ModelView getView(Mapping map) throws Exception {
-        try {
-            String classname = map.getClassName();
-            String method = map.getMethod();
-
-            Object obj = Class.forName(classname).newInstance();
-
-            Method m = obj.getClass().getDeclaredMethod(method, null);
-            m.setAccessible(true);
-            ModelView mv = (ModelView) m.invoke(obj, null);
-
-            return mv;
-
-        } catch (Exception e) {
-            throw e;
+    public void setAllAttribut(HttpServletRequest request, HashMap<String, Object> data) throws Exception {
+        for (Map.Entry<String, Object> alldata : data.entrySet()) {
+            request.setAttribute(alldata.getKey(), alldata.getValue());
         }
+    }
+
+    public String getUrlMv(Mapping map) throws Exception {
+
+        String classname = map.getClassName();
+        String method = map.getMethod();
+
+        Object obj = Class.forName(classname).newInstance();
+
+        Method m = obj.getClass().getDeclaredMethod(method, null);
+        m.setAccessible(true);
+        ModelView mv = (ModelView) m.invoke(obj, null);
+
+        return mv.getUrl();
 
     }
+
+    public HashMap<String, Object> getDataMv(Mapping map) throws Exception {
+
+        String classname = map.getClassName();
+        String method = map.getMethod();
+
+        Object obj = Class.forName(classname).newInstance();
+
+        Method m = obj.getClass().getDeclaredMethod(method, null);
+        m.setAccessible(true);
+        ModelView mv = (ModelView) m.invoke(obj, null);
+
+        return mv.getData();
+    }
+
+    
 
     /*
-        fonction maka anle mapping mifanaraka
-        amle slug(url), oh: emp-add
-        slug indice 4 ilay ao arinanle anarnle projet
-        amle lien
-    */ 
+     * fonction maka anle mapping mifanaraka
+     * amle slug(url), oh: emp-add
+     * slug indice 4 ilay ao arinanle anarnle projet
+     * amle lien
+     */
     public Mapping getMapping(String url) throws Exception {
         String[] slug = Util.lien(url);
         for (Map.Entry<String, Mapping> all : mappingUrls.entrySet()) {
@@ -97,6 +122,10 @@ public class FrontServlet extends HttpServlet {
                     Url m = (Url) mtd[i].getAnnotation(Url.class);
                     this.mappingUrls.put(m.valeur(), new Mapping(a.getName(), mtd[i].getName()));
                 }
+            }
+
+            for (Map.Entry<String, Mapping> tt : mappingUrls.entrySet()) {
+                System.out.println(tt.getKey());
             }
 
         } catch (Exception e) {

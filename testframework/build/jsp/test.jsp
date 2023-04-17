@@ -5,6 +5,11 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="java.util.Vector,model.*"%>
+<%
+    Vector<Emp> emp = (Vector<Emp>) request.getAttribute("list");
+    out.println(emp.get(0).getNom());
+%>
 <!DOCTYPE html>
 <html>
     <head>
