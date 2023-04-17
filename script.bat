@@ -6,5 +6,5 @@ cd ../../../../
 SET CLASSPATH=.\testframework\build\WEB-INF\lib\framework.jar
 javac -d testframework/build/WEB-INF/classes testframework/src/*.java
 cd testframework/build
-jar -cf testframework.war ./
-xcopy /y .\testframework.war "C:\Program Files\Apache Software Foundation\Tomcat 10.0\webapps"
+jar -cf testfr.war ./
+xcopy /y .\testfr.war "C:\Program Files\Apache Software Foundation\Tomcat 10.0\webapps"
