@@ -15,10 +15,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Map;
 import utility.Util;
+import java.util.Date;
 
 /**
  *
@@ -44,12 +46,16 @@ public class FrontServlet extends HttpServlet {
 
             Mapping map = this.getMapping(url);
 
-            String urlMv = this.getUrlMv(map);
+            Object obj = Class.forName(map.getClassName()).newInstance();
+            this.sendData(request,obj);
 
-            
-            HashMap<String,Object> dataMv = this.getDataMv(map);
+            ModelView mv = this.getMv(map,obj);
+
+            String urlMv = mv.getUrl();
+            HashMap<String,Object> dataMv = mv.getData();
             
             this.setAllAttribut(request, dataMv);
+            
 
             RequestDispatcher disp = request.getRequestDispatcher("/jsp/"+urlMv);
             disp.forward(request, response);
@@ -59,40 +65,64 @@ public class FrontServlet extends HttpServlet {
         }
     }
 
+    /*
+        mandefa donnees affichage --> back
+    */
+    public void sendData(HttpServletRequest request,Object obj) throws Exception{
+        Field[] fields = obj.getClass().getDeclaredFields();
+
+        for (int i = 0; i < fields.length; i++) {
+            String value = request.getParameter(fields[i].getName());
+            String inCaseToCastManually = fields[i].getType().getName();
+
+            if(value != null){
+                fields[i].setAccessible(true);
+
+                if(inCaseToCastManually.compareTo("java.util.Date") == 0){
+                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                    Date parsed = format.parse(value);
+                    fields[i].set(obj,parsed);
+                } else {
+                    fields[i].set(obj, fields[i].getType().cast(value));
+                }
+
+            }
+        }
+
+    }
+
     public void setAllAttribut(HttpServletRequest request, HashMap<String, Object> data) throws Exception {
         for (Map.Entry<String, Object> alldata : data.entrySet()) {
             request.setAttribute(alldata.getKey(), alldata.getValue());
         }
     }
 
-    public String getUrlMv(Mapping map) throws Exception {
+    public ModelView getMv(Mapping map,Object obj) throws Exception {
 
         String classname = map.getClassName();
         String method = map.getMethod();
-
-        Object obj = Class.forName(classname).newInstance();
 
         Method m = obj.getClass().getDeclaredMethod(method, null);
         m.setAccessible(true);
         ModelView mv = (ModelView) m.invoke(obj, null);
 
-        return mv.getUrl();
+        return mv;
 
     }
 
-    public HashMap<String, Object> getDataMv(Mapping map) throws Exception {
+    // public HashMap<String, Object> getDataMv(Mapping map) throws Exception {
 
-        String classname = map.getClassName();
-        String method = map.getMethod();
+    //     String classname = map.getClassName();
+    //     String method = map.getMethod();
 
-        Object obj = Class.forName(classname).newInstance();
+    //     Object obj = Class.forName(classname).newInstance();
 
-        Method m = obj.getClass().getDeclaredMethod(method, null);
-        m.setAccessible(true);
-        ModelView mv = (ModelView) m.invoke(obj, null);
+    //     Method m = obj.getClass().getDeclaredMethod(method, null);
+    //     m.setAccessible(true);
+    //     ModelView mv = (ModelView) m.invoke(obj, null);
 
-        return mv.getData();
-    }
+    //     return mv.getData();
+    // }
 
     
 

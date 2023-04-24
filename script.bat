@@ -8,3 +8,4 @@ javac -d testframework/build/WEB-INF/classes testframework/src/*.java
 cd testframework/build
 jar -cf testfr.war ./
 xcopy /y .\testfr.war "C:\Program Files\Apache Software Foundation\Tomcat 10.0\webapps"
+cd ../../
