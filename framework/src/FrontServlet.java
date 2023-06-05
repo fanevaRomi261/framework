@@ -9,16 +9,21 @@ import annotation.Url;
 import etu1866.framework.Mapping;
 import etu1866.framework.ModelView;
 import jakarta.servlet.RequestDispatcher;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import java.text.SimpleDateFormat;
 import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Map;
+import jakarta.servlet.annotation.MultipartConfig;
+import utility.FileUpload;
 import utility.Util;
 import java.util.Date;
 
@@ -26,6 +31,8 @@ import java.util.Date;
  *
  * @author faneva
  */
+
+@MultipartConfig
 public class FrontServlet extends HttpServlet {
 
     HashMap<String, Mapping> mappingUrls = new HashMap<>();
@@ -73,28 +80,49 @@ public class FrontServlet extends HttpServlet {
         Field[] fields = obj.getClass().getDeclaredFields();
 
         for (int i = 0; i < fields.length; i++) {
-            String value = request.getParameter(fields[i].getName());
             Class inCaseToCastManually = fields[i].getType();
 
-            if(value != null){
-                fields[i].setAccessible(true);
+            if(inCaseToCastManually == FileUpload.class) {
+                try {
+                    Part file = request.getPart(fields[i].getName());
+                    if(file.getSize() > 0){
+                        byte[] b = this.partToByte(file);
+                        fields[i].setAccessible(true);
+                        fields[i].set(obj, new FileUpload(file.getSubmittedFileName(),null,b));
+                    }
+                } catch (Exception e) {
+                }
+            } else {
+                String value = request.getParameter(fields[i].getName());
 
-                // if(inCaseToCastManually == "java.util.Date"){
-                //     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-                //     Date parsed = format.parse(value);
-                //     fields[i].set(obj,parsed);
-                // } else if(inCaseToCastManually == "int"){
-                //     fields[i].set(obj, Integer.parseInt(value));
-                // } else if(inCaseToCastManually == "double"){
-                //     fields[i].set(obj, Double.parseDouble(value));
-                // } else {
-                //     fields[i].set(obj, fields[i].getType().cast(value));
-                // }
+                if(value != null){
+                    fields[i].setAccessible(true);
+                    fields[i].set(obj, Util.cast(value, inCaseToCastManually));
+    
+                }
+            }  
 
-                fields[i].set(obj, Util.cast(value, inCaseToCastManually));
-
-            }
+            
         }
+    }
+
+    public byte[] partToByte(Part file) throws Exception{
+        InputStream inp = file.getInputStream();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+
+        while((bytesRead = inp.read(buffer)) != -1){
+            bos.write(buffer, 0, bytesRead);
+        }
+
+        byte[] byteArray = bos.toByteArray();
+
+        bos.close();
+        inp.close();
+
+        return byteArray;
 
     }
 
