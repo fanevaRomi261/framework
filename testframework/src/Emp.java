@@ -18,9 +18,14 @@ import java.util.Date;
 public class Emp {
 
     String nom;
-    String prenom;
+    int age;
     Date date;
     
+    public Emp(String nom, int age) {
+        this.nom = nom;
+        this.age = age;
+    }
+
     public Date getDate() {
         return date;
     }
@@ -32,10 +37,6 @@ public class Emp {
     public Emp() {
     }
 
-    public Emp(String nom,String prenom) {
-        this.nom = nom;
-        this.prenom = prenom;
-    }
 
     @Url(valeur="emp-all")
     public ModelView find(){
@@ -43,9 +44,9 @@ public class Emp {
         mv.setUrl("test.jsp");
 
         Vector<Emp> data = new Vector<>();
-        data.add(new Emp("Faneva","Prenom1"));
-        data.add(new Emp("Rakoto","Prenom1"));
-        data.add(new Emp("Rakoto","Prenom1"));
+        data.add(new Emp("Faneva",10));
+        data.add(new Emp("Rakoto",12));
+        data.add(new Emp("Rakoto",15));
 
         mv.addItem("list",data);
 
@@ -66,26 +67,29 @@ public class Emp {
         ModelView mv = new ModelView();
 
         // System.out.println("nom 1:"+this.getNom());
-        mv.addItem("date",this.getDate());
+        mv.addItem("age",this.getAge());
 
         mv.setUrl("valiny.jsp");
 
         return mv;
     }
 
+
+
     public String getNom() {
         return nom;
     } 
-
-    public String getPrenom() {
-        return prenom;
-    }
 
     public void setNom(String nom) {
         this.nom = nom;
     }
 
-    public void setPrenom(String prenom) {
-        this.prenom = prenom;
-    } 
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
 }

@@ -49,7 +49,7 @@ public class FrontServlet extends HttpServlet {
             Object obj = Class.forName(map.getClassName()).newInstance();
             this.sendData(request,obj);
 
-            ModelView mv = this.getMv(map,obj);
+            ModelView mv = this.getMv(request,map,obj);
 
             String urlMv = mv.getUrl();
             HashMap<String,Object> dataMv = mv.getData();
@@ -60,7 +60,8 @@ public class FrontServlet extends HttpServlet {
             RequestDispatcher disp = request.getRequestDispatcher("/jsp/"+urlMv);
             disp.forward(request, response);
         } catch (Exception e) {
-            out.println(e.getMessage());
+            out.println("URL :"+request.getRequestURL().toString());
+            out.println("ERROR :"+e.getMessage());
             e.printStackTrace();
         }
     }
@@ -73,18 +74,24 @@ public class FrontServlet extends HttpServlet {
 
         for (int i = 0; i < fields.length; i++) {
             String value = request.getParameter(fields[i].getName());
-            String inCaseToCastManually = fields[i].getType().getName();
+            Class inCaseToCastManually = fields[i].getType();
 
             if(value != null){
                 fields[i].setAccessible(true);
 
-                if(inCaseToCastManually.compareTo("java.util.Date") == 0){
-                    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-                    Date parsed = format.parse(value);
-                    fields[i].set(obj,parsed);
-                } else {
-                    fields[i].set(obj, fields[i].getType().cast(value));
-                }
+                // if(inCaseToCastManually == "java.util.Date"){
+                //     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                //     Date parsed = format.parse(value);
+                //     fields[i].set(obj,parsed);
+                // } else if(inCaseToCastManually == "int"){
+                //     fields[i].set(obj, Integer.parseInt(value));
+                // } else if(inCaseToCastManually == "double"){
+                //     fields[i].set(obj, Double.parseDouble(value));
+                // } else {
+                //     fields[i].set(obj, fields[i].getType().cast(value));
+                // }
+
+                fields[i].set(obj, Util.cast(value, inCaseToCastManually));
 
             }
         }
@@ -97,33 +104,36 @@ public class FrontServlet extends HttpServlet {
         }
     }
 
-    public ModelView getMv(Mapping map,Object obj) throws Exception {
+    public Object[] argumentValues(HttpServletRequest request, Method meth) throws Exception {
+        Parameter[] param = meth.getParameters();
+
+        Object[] values = new Object[param.length];
+        for (int i = 0; i < values.length; i++) {
+            Class type = param[i].getType();
+            String value = request.getParameter(param[i].getName());
+            values[i] = Util.cast(value, type);
+        }
+
+        return values;
+    }
+    
+
+    public ModelView getMv(HttpServletRequest request,Mapping map,Object obj) throws Exception {
 
         String classname = map.getClassName();
         String method = map.getMethod();
+        Class[] argumentType = map.getMethodArgumentType();
 
-        Method m = obj.getClass().getDeclaredMethod(method, null);
+        Method m = obj.getClass().getDeclaredMethod(method, argumentType);
         m.setAccessible(true);
-        ModelView mv = (ModelView) m.invoke(obj, null);
+
+        Object[] argValues = this.argumentValues(request, m);
+        ModelView mv = (ModelView) m.invoke(obj, argValues);
+        // System.out.println("SIZE : "+mv.getData().size());
 
         return mv;
 
     }
-
-    // public HashMap<String, Object> getDataMv(Mapping map) throws Exception {
-
-    //     String classname = map.getClassName();
-    //     String method = map.getMethod();
-
-    //     Object obj = Class.forName(classname).newInstance();
-
-    //     Method m = obj.getClass().getDeclaredMethod(method, null);
-    //     m.setAccessible(true);
-    //     ModelView mv = (ModelView) m.invoke(obj, null);
-
-    //     return mv.getData();
-    // }
-
     
 
     /*
@@ -139,7 +149,7 @@ public class FrontServlet extends HttpServlet {
                 return all.getValue();
             }
         }
-        throw new Exception("Tsy misy");
+        throw new Exception("Lien tsy misy");
     }
 
     @Override
@@ -150,14 +160,9 @@ public class FrontServlet extends HttpServlet {
                 Method[] mtd = Fonction.getMethodsWithAnnotation(a, Url.class);
                 for (int i = 0; i < mtd.length; i++) {
                     Url m = (Url) mtd[i].getAnnotation(Url.class);
-                    this.mappingUrls.put(m.valeur(), new Mapping(a.getName(), mtd[i].getName()));
+                    this.mappingUrls.put(m.valeur(), new Mapping(a.getName(), mtd[i].getName(), mtd[i].getParameterTypes()));
                 }
             }
-
-            for (Map.Entry<String, Mapping> tt : mappingUrls.entrySet()) {
-                System.out.println(tt.getKey());
-            }
-
         } catch (Exception e) {
         }
     }

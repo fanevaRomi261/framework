@@ -12,10 +12,14 @@ package etu1866.framework;
 public class Mapping {
     String className;
     String method;
+    Class[] methodArgumentType; //type ny arguments anle methode no ato
 
-    public Mapping(String className, String method) {
+
+
+    public Mapping(String className, String method, Class[] methodArgumentType) {
         this.className = className;
         this.method = method;
+        this.methodArgumentType = methodArgumentType;
     }
 
     public String getClassName() {
@@ -33,6 +37,15 @@ public class Mapping {
     public void setMethod(String method) {
         this.method = method;
     }
+
+    public Class[] getMethodArgumentType() {
+        return methodArgumentType;
+    }
+
+    public void setMethodArgumentType(Class[] methodArgumentType) {
+        this.methodArgumentType = methodArgumentType;
+    }
+
     
     
 }

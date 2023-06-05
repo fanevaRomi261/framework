@@ -1,0 +1,85 @@
+REMARQUE :
+* Créez un dossier nommé "jsp" dans le répertoire du projet (au même niveau que "WEB-INF"), et mettez-y tous les fichiers .jsp que vous créez.
+* Toutes les classes créées doivent contenir un constructeur vide.
+
+* Toutes les fonctions annotées doivent retourner un objet de type ModelView.
+
+* Lorsque vous compilez avec javac, il faut utiliser l'option -parameter
+    ex : javac -parameters -d . *.java
+
+* Contenu du web.xml :
+
+    <servlet>
+        <servlet-name>FrontServlet</servlet-name>
+        <servlet-class>etu1866.framework.servlet.FrontServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FrontServlet</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>jsp</servlet-name>
+        <url-pattern>/jsp/*</url-pattern>
+    </servlet-mapping>
+
+UTILISATION:
+* Les imports nécessaires dans le modèle:
+    import annotation.Url;
+    import etu1866.framework.ModelView;
+
+* Comment annoter une fonction ?
+    @Url(valeur="mon-lien")
+    public ModelView maFonction(){
+        ...
+    }
+
+* Comment envoyer des données du modèle vers la vue ?
+    - Créez une fonction retournant un objet ModelView.
+    - Instanciez un objet ModelView.
+    - Appelez le setter (setUrl) pour indiquer où vous souhaitez envoyer vos données et où vous allez.
+    - Appelez la fonction addItem("nomDeMaDonnee", maDonnee).
+    ex:
+        @Url(valeur="mon-lien")
+        public ModelView maFonction(){
+            ModelView mv = new ModelView();
+            mv.setUrl("pageJsp.jsp");
+            mv.addItem("monAge",18);
+        }
+Petite remarque:
+    - Vous n'êtes pas obligé d'envoyer des données, vous pouvez simplement donner la page JSP.
+    - Pour récupérer des données envoyées à la page JSP, il suffit d'appeler et de caster
+    ex:
+    (int)request.getAttribute("monAge") <-- l'exemple au dessus
+
+* Comment envoyer des données de la vue vers le modèle (que ce soit par formulaire ou par un lien) ?
+    - L'attribut "name" des inputs ou des liens doit être égal au nom des attributs. Vous pouvez récupérer ces valeurs par un getter dans le modèle.
+    ex : 
+    --> page jsp
+
+    ...
+    <form action="monLien" method="POST">
+        <input type="text" name="nom"/>
+    </form>
+    ...
+
+    -->model
+    public class Etudiant{
+        String nom; 
+        '''
+    }
+
+    - Si la fonction annotée par le lien a des arguments, l'attribut "name" des inputs ou des liens doit être égal aux noms de ces arguments.
+    ex:
+    --> page jsp 
+    <ul>
+        <li><a href="detail-etudiant?id=1">voir</a></li>
+        ...
+        ...
+    </ul>
+
+
+    --> model
+    @Url(valeur="detail-etudiant")
+    public maFonction(int id){
+        ...
+    }
