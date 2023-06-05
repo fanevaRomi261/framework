@@ -1,3 +1,4 @@
+<%@page import="model.*"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +9,9 @@
 </head>
 <body>
     <%
-        out.println(((int)request.getAttribute("age"))+1);
+        Etudiant etu = (Etudiant) request.getAttribute("detail");
+        out.println(etu.getNom());
+        out.println(request.getAttribute("test"));
     %>
 </body>
 </html>

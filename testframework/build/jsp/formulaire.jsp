@@ -9,8 +9,8 @@
 <body>
     <form action="emp-save" method="post">
         <p>Nom :<input type="text" name="nom"></p>
-        <p>Prenom :<input type="text" name="prenom"></p>
-        <p>Prenom :<input type="date" name="date"></p>
+        <p>Age :<input type="text" name="age"></p>
+        <p>Date :<input type="date" name="date"></p>
         <p><input type="submit" value="Valider"></p>
     </form>
 </body>
