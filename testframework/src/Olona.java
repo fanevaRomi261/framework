@@ -24,5 +24,6 @@ public class Olona {
         System.out.println("file name: " + this.photo.getName()+" | byte length :"+this.photo.getFile().length);
         return view;
     }
+
     
 }
