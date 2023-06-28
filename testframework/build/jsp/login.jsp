@@ -7,6 +7,10 @@
     <title>Document</title>
 </head>
 <body>
-    <p>auth mety</p>
+    <form action="accueil" method="post">
+        <p>User :<input type="text" name="user"></p>
+        <p>Pass :<input type="password" name="pass"></p>
+        <p><input type="submit" value="Valider"></p>
+    </form>
 </body>
 </html>

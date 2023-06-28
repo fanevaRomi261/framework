@@ -16,6 +16,8 @@ public class Etudiant {
         this.nom = nom;
     }
 
+    
+
     @Url(valeur="etu-all")
     public ModelView all(){
         ModelView mv = new ModelView();

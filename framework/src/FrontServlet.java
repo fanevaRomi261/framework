@@ -4,9 +4,7 @@
  */
 package etu1866.framework.servlet;
 
-import annotation.Fonction;
-import annotation.Scope;
-import annotation.Url;
+import annotation.*;
 import etu1866.framework.Mapping;
 import etu1866.framework.ModelView;
 import jakarta.servlet.RequestDispatcher;
@@ -18,7 +16,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
+import jakarta.servlet.ServletConfig;
 import java.text.SimpleDateFormat;
 import java.lang.reflect.*;
 import java.util.HashMap;
@@ -27,6 +27,7 @@ import jakarta.servlet.annotation.MultipartConfig;
 import utility.FileUpload;
 import utility.Util;
 import java.util.Date;
+import java.util.Enumeration;
 
 /**
  *
@@ -70,7 +71,7 @@ public class FrontServlet extends HttpServlet {
             RequestDispatcher disp = request.getRequestDispatcher("/jsp/"+urlMv);
             disp.forward(request, response);
         } catch (Exception e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             // if(e.getMessage().compareToIgnoreCase("index") == 0){
             //     RequestDispatcher disp = request.getRequestDispatcher("/jsp/index.jsp");
             //     disp.forward(request, response);
@@ -80,7 +81,7 @@ public class FrontServlet extends HttpServlet {
             // }
             
             // out.println("URL :"+request.getRequestURL().toString());
-            // out.println("ERROR :"+e.getMessage());
+            out.println("ERROR :"+e.getMessage());
             // e.printStackTrace();
         }
     }
@@ -156,6 +157,8 @@ public class FrontServlet extends HttpServlet {
 
         return values;
     }
+
+    
     
 
     public ModelView getMv(HttpServletRequest request,Mapping map,Object obj) throws Exception {
@@ -167,10 +170,30 @@ public class FrontServlet extends HttpServlet {
         Method m = obj.getClass().getDeclaredMethod(method, argumentType);
         m.setAccessible(true);
 
+
+        if(m.getAnnotation(Auth.class) != null){
+            Auth auth = (Auth) m.getAnnotation(Auth.class);
+            String profil = auth.profil();
+            if(request.getSession().getAttribute("session") != null){
+                HashMap<String,Boolean> session = (HashMap<String,Boolean>) request.getSession().getAttribute("session");
+                System.out.println("empty: "+session.isEmpty()+" profil :"+session.get(profil));
+                if(session.isEmpty() == true){
+                    throw new Exception("Connectez vous");
+                }
+                else if(session.get(profil) == null || (session.isEmpty() == false && session.get(profil) == false)){
+                    throw new Exception("Authorisation requis");
+                }
+            } else {
+                throw new Exception("Auth requis");
+            }
+        } 
+
+
         Object[] argValues = this.argumentValues(request, m);
         ModelView mv = (ModelView) m.invoke(obj, argValues);
-        // System.out.println("SIZE : "+mv.getData().size());
-
+        
+        this.addHashToSession(request, mv.getSession());
+        
         return mv;
 
     }
@@ -216,6 +239,9 @@ public class FrontServlet extends HttpServlet {
         }    
     }
 
+    public void addHashToSession(HttpServletRequest request,HashMap<String,Boolean> session){
+        request.getSession().setAttribute("session",session);
+    }
 
 
     public Object operate(String className) throws Exception{
@@ -237,9 +263,13 @@ public class FrontServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         try {
+            
             Class[] all = Fonction.getAllClasses();
             this.fillMappingUrl(all);
             this.fillSingletons(all);
+
+            // String str = this.getServletConfig().getInitParameter("test");
+            // System.out.println("param :"+str);
             
         } catch (Exception e) {
         }
