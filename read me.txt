@@ -24,7 +24,8 @@ REMARQUE :
 
 UTILISATION:
 * Les imports nécessaires dans le modèle:
-    import annotation.Url;
+    import utility.FileUpload;
+    import annotation.*;
     import etu1866.framework.ModelView;
 
 * Comment annoter une fonction ?

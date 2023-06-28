@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
+import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 
 /**
@@ -39,4 +40,22 @@ public class Util {
         }
             return toCast;
     }
+
+    public static void reinitializeAttribut(Object object) throws Exception{
+        Field[] allFields = object.getClass().getDeclaredFields();
+        for (int i = 0; i < allFields.length; i++) {
+            allFields[i].setAccessible(true);
+            if(allFields[i].getType() == int.class || allFields[i].getType() == double.class || allFields[i].getType() == float.class
+            || allFields[i].getType() == long.class || allFields[i].getType() == short.class || allFields[i].getType() == byte.class){
+                allFields[i].set(object, 0);
+            } else if(allFields[i].getType() == boolean.class){
+                allFields[i].set(object, false);
+            } else if(allFields[i].getType() == char.class){
+                allFields[i].set(object, ' ');
+            } else {
+                allFields[i].set(object,null);
+            }
+        }
+    }
+    
 }

@@ -5,6 +5,7 @@
 package etu1866.framework.servlet;
 
 import annotation.Fonction;
+import annotation.Scope;
 import annotation.Url;
 import etu1866.framework.Mapping;
 import etu1866.framework.ModelView;
@@ -36,6 +37,7 @@ import java.util.Date;
 public class FrontServlet extends HttpServlet {
 
     HashMap<String, Mapping> mappingUrls = new HashMap<>();
+    HashMap<String,Object> singletons = new HashMap<>();
 
     public HashMap<String, Mapping> getMappingUrls() {
         return mappingUrls;
@@ -53,7 +55,8 @@ public class FrontServlet extends HttpServlet {
 
             Mapping map = this.getMapping(url);
 
-            Object obj = Class.forName(map.getClassName()).newInstance();
+            // Object obj = Class.forName(map.getClassName()).newInstance();
+            Object obj = this.operate(map.getClassName());
             this.sendData(request,obj);
 
             ModelView mv = this.getMv(request,map,obj);
@@ -67,9 +70,18 @@ public class FrontServlet extends HttpServlet {
             RequestDispatcher disp = request.getRequestDispatcher("/jsp/"+urlMv);
             disp.forward(request, response);
         } catch (Exception e) {
-            out.println("URL :"+request.getRequestURL().toString());
-            out.println("ERROR :"+e.getMessage());
             e.printStackTrace();
+            // if(e.getMessage().compareToIgnoreCase("index") == 0){
+            //     RequestDispatcher disp = request.getRequestDispatcher("/jsp/index.jsp");
+            //     disp.forward(request, response);
+            // } else {
+            //     RequestDispatcher disp = request.getRequestDispatcher("/jsp/error.jsp");
+            //     disp.forward(request, response);
+            // }
+            
+            // out.println("URL :"+request.getRequestURL().toString());
+            // out.println("ERROR :"+e.getMessage());
+            // e.printStackTrace();
         }
     }
 
@@ -172,25 +184,63 @@ public class FrontServlet extends HttpServlet {
      */
     public Mapping getMapping(String url) throws Exception {
         String[] slug = Util.lien(url);
+        String lien = slug[4];
+
         for (Map.Entry<String, Mapping> all : mappingUrls.entrySet()) {
-            if (slug[4].compareToIgnoreCase(all.getKey()) == 0) {
+            if (lien.compareToIgnoreCase(all.getKey()) == 0) {
                 return all.getValue();
             }
         }
-        throw new Exception("Lien tsy misy");
+        throw new Exception("error");
+    }
+
+    public void fillMappingUrl(Class[] all) throws Exception{
+        for (Class a : all) {
+            Method[] mtd = Fonction.getMethodsWithAnnotation(a, Url.class);
+            for (int i = 0; i < mtd.length; i++) {
+                Url m = (Url) mtd[i].getAnnotation(Url.class);
+                this.mappingUrls.put(m.valeur(), new Mapping(a.getName(), mtd[i].getName(), mtd[i].getParameterTypes()));
+            }
+        }
+    }
+
+    public void fillSingletons(Class[] all) throws Exception{
+        Class[] cls = Fonction.getClassesWithAnnotation(all, Scope.class);
+
+        for (int i = 0; i < cls.length; i++) {
+            Scope m = (Scope) cls[i].getAnnotation(Scope.class);
+            if(m.pattern().compareToIgnoreCase("singleton") == 0){
+                this.singletons.put(cls[i].getName(),null);
+                // System.out.println(cls[i].getName());
+            }
+        }    
+    }
+
+
+
+    public Object operate(String className) throws Exception{
+        for (Map.Entry<String, Object> all : this.singletons.entrySet()) {
+            if (className.compareToIgnoreCase(all.getKey()) == 0 && all.getValue() != null) {
+                Object val = all.getValue();
+                Util.reinitializeAttribut(val);
+                return val;
+            }
+            else if(className.compareToIgnoreCase(all.getKey()) == 0 && all.getValue() == null){
+                Object val = Class.forName(className).newInstance();
+                this.singletons.put(className, val);
+                return val;
+            }
+        }
+        return Class.forName(className).newInstance();
     }
 
     @Override
     public void init() throws ServletException {
         try {
             Class[] all = Fonction.getAllClasses();
-            for (Class a : all) {
-                Method[] mtd = Fonction.getMethodsWithAnnotation(a, Url.class);
-                for (int i = 0; i < mtd.length; i++) {
-                    Url m = (Url) mtd[i].getAnnotation(Url.class);
-                    this.mappingUrls.put(m.valeur(), new Mapping(a.getName(), mtd[i].getName(), mtd[i].getParameterTypes()));
-                }
-            }
+            this.fillMappingUrl(all);
+            this.fillSingletons(all);
+            
         } catch (Exception e) {
         }
     }
