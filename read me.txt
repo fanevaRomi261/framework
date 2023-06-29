@@ -84,3 +84,6 @@ Petite remarque:
     public maFonction(int id){
         ...
     }
+
+
+** tsy maitsy session ny anarnle attribut hashmap session raha haka anle session ao am model

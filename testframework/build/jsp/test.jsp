@@ -1,3 +1,4 @@
+<%@page import="model.*"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +8,9 @@
     <title>Document</title>
 </head>
 <body>
-    <p>auth mety</p>
+    <%
+        Etudiant etu = (Etudiant) request.getAttribute("eleve1");
+        out.println(etu.getNom());
+    %>
 </body>
 </html>

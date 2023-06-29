@@ -1,4 +1,4 @@
-javac -d framework/build/WEB-INF/classes/ framework/src/*.java
+javac -d framework/build/WEB-INF/classes/ framework/src/*.java 
 cd framework/build/WEB-INF/classes
 jar -cf framework.jar ./
 xcopy /y .\framework.jar ..\..\..\..\testframework\build\WEB-INF\lib
