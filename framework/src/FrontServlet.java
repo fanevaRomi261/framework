@@ -188,11 +188,28 @@ public class FrontServlet extends HttpServlet {
             }
         } 
 
+        if(m.getAnnotation(Session.class) != null){
+            Field[] all = obj.getClass().getDeclaredFields();
+            for (int index = 0; index < all.length; index++) {
+                all[index].setAccessible(true);
+                if(all[index].getName().compareToIgnoreCase("session") == 0){
+                    if(request.getSession().getAttribute("session") == null){
+                        throw new Exception("session vide");
+                    }
+                    all[index].set(obj,(HashMap<String,Boolean>) request.getSession().getAttribute("session"));
+                    break;
+                }
+            }
+            
+        }
+
 
         Object[] argValues = this.argumentValues(request, m);
         ModelView mv = (ModelView) m.invoke(obj, argValues);
         
-        this.addHashToSession(request, mv.getSession());
+        if(mv.getSession().isEmpty() == false){
+            this.addHashToSession(request, mv.getSession());
+        }
         
         return mv;
 
