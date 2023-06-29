@@ -28,6 +28,7 @@ import utility.FileUpload;
 import utility.Util;
 import java.util.Date;
 import java.util.Enumeration;
+import com.google.gson.Gson;
 
 /**
  *
@@ -62,14 +63,24 @@ public class FrontServlet extends HttpServlet {
 
             ModelView mv = this.getMv(request,map,obj);
 
-            String urlMv = mv.getUrl();
-            HashMap<String,Object> dataMv = mv.getData();
-            
-            this.setAllAttribut(request, dataMv);
-            
+            if(mv.isJson() == false){
+                String urlMv = mv.getUrl();
+                HashMap<String,Object> dataMv = mv.getData();
+                
+                this.setAllAttribut(request, dataMv);
+                
+    
+                RequestDispatcher disp = request.getRequestDispatcher("/jsp/"+urlMv);
+                disp.forward(request, response);
+            } else {
+                Gson gson = new Gson();
+                String json = gson.toJson(mv.getData());
 
-            RequestDispatcher disp = request.getRequestDispatcher("/jsp/"+urlMv);
-            disp.forward(request, response);
+                out.println(json);
+
+            }
+
+           
         } catch (Exception e) {
             // e.printStackTrace();
             // if(e.getMessage().compareToIgnoreCase("index") == 0){

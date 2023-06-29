@@ -15,6 +15,7 @@ public class ModelView {
     String url;
     HashMap <String,Object> data = new HashMap<>();
     HashMap <String,Boolean> session = new HashMap<>();
+    boolean isJson;
 
     
     public ModelView() {
@@ -55,6 +56,14 @@ public class ModelView {
 
     public void addSession(String cle,Boolean valeur){
         this.getSession().put(cle, valeur);
+    }
+
+    public boolean isJson() {
+        return isJson;
+    }
+
+    public void setJson(boolean isJson) {
+        this.isJson = isJson;
     }
     
     
