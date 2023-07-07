@@ -39,7 +39,7 @@ import com.google.gson.Gson;
 public class FrontServlet extends HttpServlet {
 
     HashMap<String, Mapping> mappingUrls = new HashMap<>();
-    HashMap<String,Object> singletons = new HashMap<>();
+    HashMap<String, Object> singletons = new HashMap<>();
 
     public HashMap<String, Mapping> getMappingUrls() {
         return mappingUrls;
@@ -59,85 +59,93 @@ public class FrontServlet extends HttpServlet {
 
             // Object obj = Class.forName(map.getClassName()).newInstance();
             Object obj = this.operate(map.getClassName());
-            this.sendData(request,obj);
+            this.sendData(request, obj);
 
-            ModelView mv = this.getMv(request,map,obj);
+            Method meth = this.getMethod(request, map, obj);
+            if (meth.getAnnotation(RestApi.class) != null) {
+                Object[] argValues = this.argumentValues(request, meth);
 
-            if(mv.isJson() == false){
-                String urlMv = mv.getUrl();
-                HashMap<String,Object> dataMv = mv.getData();
-                
-                this.setAllAttribut(request, dataMv);
-                
-    
-                RequestDispatcher disp = request.getRequestDispatcher("/jsp/"+urlMv);
-                disp.forward(request, response);
-            } else {
                 Gson gson = new Gson();
-                String json = gson.toJson(mv.getData());
+
+                String json = gson.toJson(meth.invoke(obj, argValues));
 
                 out.println(json);
+            } else {
+                ModelView mv = this.getMv(request, map, obj);
 
+                if (mv.isJson() == false) {
+                    String urlMv = mv.getUrl();
+                    HashMap<String, Object> dataMv = mv.getData();
+
+                    this.setAllAttribut(request, dataMv);
+
+                    RequestDispatcher disp = request.getRequestDispatcher("/jsp/" + urlMv);
+                    disp.forward(request, response);
+                } else {
+                    Gson gson = new Gson();
+                    String json = gson.toJson(mv.getData());
+
+                    out.println(json);
+
+                }
             }
 
-           
         } catch (Exception e) {
             // e.printStackTrace();
             // if(e.getMessage().compareToIgnoreCase("index") == 0){
-            //     RequestDispatcher disp = request.getRequestDispatcher("/jsp/index.jsp");
-            //     disp.forward(request, response);
+            // RequestDispatcher disp = request.getRequestDispatcher("/jsp/index.jsp");
+            // disp.forward(request, response);
             // } else {
-            //     RequestDispatcher disp = request.getRequestDispatcher("/jsp/error.jsp");
-            //     disp.forward(request, response);
+            // RequestDispatcher disp = request.getRequestDispatcher("/jsp/error.jsp");
+            // disp.forward(request, response);
             // }
-            
+
             // out.println("URL :"+request.getRequestURL().toString());
-            out.println("ERROR :"+e.getMessage());
+            out.println("ERROR :" + e.getMessage());
             // e.printStackTrace();
         }
     }
 
     /*
-        mandefa donnees affichage --> back
-    */
-    public void sendData(HttpServletRequest request,Object obj) throws Exception{
+     * mandefa donnees affichage --> back
+     */
+    public void sendData(HttpServletRequest request, Object obj) throws Exception {
         Field[] fields = obj.getClass().getDeclaredFields();
 
         for (int i = 0; i < fields.length; i++) {
             Class inCaseToCastManually = fields[i].getType();
 
-            if(inCaseToCastManually == FileUpload.class) {
+            if (inCaseToCastManually == FileUpload.class) {
                 try {
                     Part file = request.getPart(fields[i].getName());
-                    if(file.getSize() > 0){
+                    if (file.getSize() > 0) {
                         byte[] b = this.partToByte(file);
                         fields[i].setAccessible(true);
-                        fields[i].set(obj, new FileUpload(file.getSubmittedFileName(),null,b));
+                        fields[i].set(obj, new FileUpload(file.getSubmittedFileName(), null, b));
                     }
                 } catch (Exception e) {
                 }
             } else {
                 String value = request.getParameter(fields[i].getName());
 
-                if(value != null){
+                if (value != null) {
                     fields[i].setAccessible(true);
                     fields[i].set(obj, Util.cast(value, inCaseToCastManually));
-    
-                }
-            }  
 
-            
+                }
+            }
+
         }
     }
 
-    public byte[] partToByte(Part file) throws Exception{
+    public byte[] partToByte(Part file) throws Exception {
         InputStream inp = file.getInputStream();
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
         byte[] buffer = new byte[1024];
         int bytesRead;
 
-        while((bytesRead = inp.read(buffer)) != -1){
+        while ((bytesRead = inp.read(buffer)) != -1) {
             bos.write(buffer, 0, bytesRead);
         }
 
@@ -169,10 +177,18 @@ public class FrontServlet extends HttpServlet {
         return values;
     }
 
-    
-    
+    public Method getMethod(HttpServletRequest request, Mapping map, Object obj) throws Exception {
+        String classname = map.getClassName();
+        String method = map.getMethod();
+        Class[] argumentType = map.getMethodArgumentType();
 
-    public ModelView getMv(HttpServletRequest request,Mapping map,Object obj) throws Exception {
+        Method m = obj.getClass().getDeclaredMethod(method, argumentType);
+        m.setAccessible(true);
+
+        return m;
+    }
+
+    public ModelView getMv(HttpServletRequest request, Mapping map, Object obj) throws Exception {
 
         String classname = map.getClassName();
         String method = map.getMethod();
@@ -181,51 +197,40 @@ public class FrontServlet extends HttpServlet {
         Method m = obj.getClass().getDeclaredMethod(method, argumentType);
         m.setAccessible(true);
 
-
-        if(m.getAnnotation(Auth.class) != null){
+        if (m.getAnnotation(Auth.class) != null) {
             Auth auth = (Auth) m.getAnnotation(Auth.class);
             String profil = auth.profil();
-            if(request.getSession().getAttribute("session") != null){
-                HashMap<String,Boolean> session = (HashMap<String,Boolean>) request.getSession().getAttribute("session");
-                System.out.println("empty: "+session.isEmpty()+" profil :"+session.get(profil));
-                if(session.isEmpty() == true){
-                    throw new Exception("Connectez vous");
-                }
-                else if(session.get(profil) == null || (session.isEmpty() == false && session.get(profil) == false)){
-                    throw new Exception("Authorisation requis");
-                }
+            if (request.getSession().getAttribute(profil) != null) {
+                
+                if ((Boolean)request.getSession().getAttribute(profil) == false) {
+                    throw new Exception("Authorisation requis");  
+                } 
             } else {
                 throw new Exception("Auth requis");
             }
-        } 
+        }
 
-        if(m.getAnnotation(Session.class) != null){
+        if (m.getAnnotation(Session.class) != null) {
             Field[] all = obj.getClass().getDeclaredFields();
             for (int index = 0; index < all.length; index++) {
                 all[index].setAccessible(true);
-                if(all[index].getName().compareToIgnoreCase("session") == 0){
-                    if(request.getSession().getAttribute("session") == null){
-                        throw new Exception("session vide");
-                    }
-                    all[index].set(obj,(HashMap<String,Boolean>) request.getSession().getAttribute("session"));
+                if (all[index].getName().compareToIgnoreCase("session") == 0) {
+                    all[index].set(obj, this.getHashSession(request));
                     break;
                 }
             }
-            
-        }
 
+        }
 
         Object[] argValues = this.argumentValues(request, m);
         ModelView mv = (ModelView) m.invoke(obj, argValues);
-        
-        if(mv.getSession().isEmpty() == false){
+
+        if (mv.getSession().isEmpty() == false) {
             this.addHashToSession(request, mv.getSession());
         }
-        
-        return mv;
 
+        return mv;
     }
-    
 
     /*
      * fonction maka anle mapping mifanaraka
@@ -245,41 +250,58 @@ public class FrontServlet extends HttpServlet {
         throw new Exception("error");
     }
 
-    public void fillMappingUrl(Class[] all) throws Exception{
+    public void fillMappingUrl(Class[] all) throws Exception {
         for (Class a : all) {
             Method[] mtd = Fonction.getMethodsWithAnnotation(a, Url.class);
             for (int i = 0; i < mtd.length; i++) {
                 Url m = (Url) mtd[i].getAnnotation(Url.class);
-                this.mappingUrls.put(m.valeur(), new Mapping(a.getName(), mtd[i].getName(), mtd[i].getParameterTypes()));
+                this.mappingUrls.put(m.valeur(),
+                        new Mapping(a.getName(), mtd[i].getName(), mtd[i].getParameterTypes()));
             }
         }
     }
 
-    public void fillSingletons(Class[] all) throws Exception{
+    public void fillSingletons(Class[] all) throws Exception {
         Class[] cls = Fonction.getClassesWithAnnotation(all, Scope.class);
 
         for (int i = 0; i < cls.length; i++) {
             Scope m = (Scope) cls[i].getAnnotation(Scope.class);
-            if(m.pattern().compareToIgnoreCase("singleton") == 0){
-                this.singletons.put(cls[i].getName(),null);
+            if (m.pattern().compareToIgnoreCase("singleton") == 0) {
+                this.singletons.put(cls[i].getName(), null);
                 // System.out.println(cls[i].getName());
             }
-        }    
+        }
     }
 
-    public void addHashToSession(HttpServletRequest request,HashMap<String,Boolean> session){
-        request.getSession().setAttribute("session",session);
+    public void addHashToSession(HttpServletRequest request, HashMap<String, Object> session) {
+        for (Map.Entry<String, Object> all : session.entrySet()) {
+            request.getSession().setAttribute(all.getKey(), all.getValue());
+        }
+    }
+
+    public HashMap<String,Object> getHashSession(HttpServletRequest request) {
+        HashMap<String,Object> valiny = new HashMap<>();
+        HttpSession session = request.getSession();
+        Enumeration<String> attributeNames = session.getAttributeNames();
+        while (attributeNames.hasMoreElements()) {
+            String attributeName = attributeNames.nextElement();
+            Object attributeValue = session.getAttribute(attributeName);
+            valiny.put(attributeName, attributeValue);
+        }
+
+        return valiny;
+
     }
 
 
-    public Object operate(String className) throws Exception{
+
+    public Object operate(String className) throws Exception {
         for (Map.Entry<String, Object> all : this.singletons.entrySet()) {
             if (className.compareToIgnoreCase(all.getKey()) == 0 && all.getValue() != null) {
                 Object val = all.getValue();
                 Util.reinitializeAttribut(val);
                 return val;
-            }
-            else if(className.compareToIgnoreCase(all.getKey()) == 0 && all.getValue() == null){
+            } else if (className.compareToIgnoreCase(all.getKey()) == 0 && all.getValue() == null) {
                 Object val = Class.forName(className).newInstance();
                 this.singletons.put(className, val);
                 return val;
@@ -291,14 +313,14 @@ public class FrontServlet extends HttpServlet {
     @Override
     public void init() throws ServletException {
         try {
-            
+
             Class[] all = Fonction.getAllClasses();
             this.fillMappingUrl(all);
             this.fillSingletons(all);
 
             // String str = this.getServletConfig().getInitParameter("test");
             // System.out.println("param :"+str);
-            
+
         } catch (Exception e) {
         }
     }

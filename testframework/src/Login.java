@@ -35,7 +35,7 @@ public class Login {
         return mv;
     }
 
-    @Auth(profil = "admin")
+    @Auth(profil = "isConnected")
     @Url(valeur="log-test")
     public ModelView test(){
         ModelView mv = new ModelView();

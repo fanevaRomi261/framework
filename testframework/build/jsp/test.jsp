@@ -1,4 +1,4 @@
-<%@page import="model.*"%>
+<%@page import="model.*,java.util.Vector"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,8 +9,10 @@
 </head>
 <body>
     <%
-        Etudiant etu = (Etudiant) request.getAttribute("eleve1");
-        out.println(etu.getNom());
+        Vector<Etudiant> etu = (Vector<Etudiant>) request.getAttribute("list");
+        out.println(etu.get(0).getNom());
+        out.println(etu.get(1).getNom());
+        out.println(etu.get(2).getNom());
     %>
 </body>
 </html>
