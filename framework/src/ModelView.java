@@ -6,6 +6,7 @@
 package etu1866.framework;
 
 import java.util.HashMap;
+import java.util.Vector;
 
 /**
  *
@@ -16,8 +17,26 @@ public class ModelView {
     HashMap <String,Object> data = new HashMap<>();
     HashMap <String,Object> session = new HashMap<>();
     boolean isJson;
+    boolean invalidateSession;
+    Vector<String> removeSession = new Vector<>();
 
     
+    public Vector<String> getRemoveSession() {
+        return removeSession;
+    }
+
+    public void setRemoveSession(Vector<String> removeSession) {
+        this.removeSession = removeSession;
+    }
+
+    public boolean isInvalidateSession() {
+        return invalidateSession;
+    }
+
+    public void setInvalidateSession(boolean invalidateSession) {
+        this.invalidateSession = invalidateSession;
+    }
+
     public ModelView() {
     }
 

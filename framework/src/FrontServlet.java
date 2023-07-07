@@ -225,6 +225,14 @@ public class FrontServlet extends HttpServlet {
         Object[] argValues = this.argumentValues(request, m);
         ModelView mv = (ModelView) m.invoke(obj, argValues);
 
+        if(mv.isInvalidateSession() == true){
+            request.getSession().invalidate();
+        } else if(mv.getRemoveSession().size() > 0){
+            for (int i = 0; i < mv.getRemoveSession().size(); i++) {
+                request.getSession().removeAttribute(mv.getRemoveSession().get(i));
+            }
+        }
+
         if (mv.getSession().isEmpty() == false) {
             this.addHashToSession(request, mv.getSession());
         }

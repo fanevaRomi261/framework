@@ -20,5 +20,24 @@ public class SessionTest {
 
         return mv;
     }
+
+    @Url(valeur = "remove-session")
+    public ModelView removeSession(){
+        ModelView mv = new ModelView();
+
+        mv.setInvalidateSession(true);
+
+        return mv;
+    }
+
+    
+    @Url(valeur = "remove-specific-session")
+    public ModelView removeSpecificSession(){
+        ModelView mv = new ModelView();
+
+        mv.getRemoveSession().add("admin");
+
+        return mv;
+    }
     
 }
