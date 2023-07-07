@@ -11,7 +11,6 @@
     <%
         Etudiant etu = (Etudiant) request.getAttribute("detail");
         out.println(etu.getNom());
-        out.println(request.getAttribute("test"));
     %>
 </body>
 </html>

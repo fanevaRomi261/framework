@@ -10,6 +10,7 @@ import java.util.Vector;
 import annotation.Url;
 import etu1866.framework.ModelView;
 import java.util.Date;
+import utility.*;
 
 /**
  *
@@ -20,7 +21,16 @@ public class Emp {
     String nom;
     int age;
     Date date;
+    FileUpload photo;
     
+    public FileUpload getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(FileUpload photo) {
+        this.photo = photo;
+    }
+
     public Emp(String nom, int age) {
         this.nom = nom;
         this.age = age;
@@ -37,42 +47,60 @@ public class Emp {
     public Emp() {
     }
 
+    @Url(valeur="form-emp")
+    public ModelView formEmp(){
+        ModelView mv = new ModelView();
+        mv.setUrl("formEmp.jsp");
+
+        return mv;
+    }
+
+    @Url(valeur="emp-save")
+    public ModelView saveEmp(){
+        ModelView mv = new ModelView();
+        mv.setUrl("accueilEmp.jsp");
+
+        mv.addItem("emp", this);
+
+        return mv;
+    }
+
 
     @Url(valeur="emp-all")
-    public ModelView find(){
+    public ModelView find(String nom){
         ModelView mv = new ModelView();
         mv.setUrl("test.jsp");
 
         Vector<Emp> data = new Vector<>();
         data.add(new Emp("Faneva",10));
         data.add(new Emp("Rakoto",12));
-        data.add(new Emp("Rakoto",15));
+        data.add(new Emp("Rabe",15));
 
         mv.addItem("list",data);
 
         return mv;
     }
 
-    @Url(valeur="emp-form")
-    public ModelView form(){
+    // @Url(valeur="emp-form")
+    // public ModelView form(){
 
-        ModelView mv = new ModelView();
-        mv.setUrl("formulaire.jsp");
+    //     ModelView mv = new ModelView();
+    //     mv.setUrl("formulaire.jsp");
 
-        return mv;
-    }
+    //     return mv;
+    // }
 
-    @Url(valeur="emp-save")
-    public ModelView save(){
-        ModelView mv = new ModelView();
+    // @Url(valeur="emp-save")
+    // public ModelView save(){
+    //     ModelView mv = new ModelView();
 
-        // System.out.println("nom 1:"+this.getNom());
-        mv.addItem("age",this.getAge());
+    //     // System.out.println("nom 1:"+this.getNom());
+    //     mv.addItem("age",this.getAge());
 
-        mv.setUrl("valiny.jsp");
+    //     mv.setUrl("valiny.jsp");
 
-        return mv;
-    }
+    //     return mv;
+    // }
 
 
 

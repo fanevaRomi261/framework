@@ -25,8 +25,8 @@ public class Etudiant {
 
         Vector<Etudiant> data = new Vector<>();
         data.add(new Etudiant(1,"Prenom1"));
-        data.add(new Etudiant(2,"Prenom1"));
-        data.add(new Etudiant(3,"Prenom1"));
+        data.add(new Etudiant(2,"Prenom2"));
+        data.add(new Etudiant(3,"Prenom3"));
 
         mv.addItem("list",data);
 
@@ -34,7 +34,8 @@ public class Etudiant {
     }
 
     @Url(valeur="etu-detail")
-    public ModelView detail(int id,String test){
+    public ModelView detail(int id){
+        System.out.println(id);
         ModelView mv = new ModelView();
         mv.setUrl("detail.jsp");
 
@@ -48,7 +49,7 @@ public class Etudiant {
                 mv.addItem("detail",data.get(i));
             }
         }
-        mv.addItem("test",test);
+        // mv.addItem("test",test);
 
         return mv;
     }

@@ -10,9 +10,10 @@
 <body>
     <%
         Vector<Etudiant> etu = (Vector<Etudiant>) request.getAttribute("list");
-        out.println(etu.get(0).getNom());
-        out.println(etu.get(1).getNom());
-        out.println(etu.get(2).getNom());
+        for (int i = 0; i < etu.size(); i++) {
+            out.println("<p><a href=\"etu-detail?id=" + etu.get(i).getId() + "\">" + etu.get(i).getNom() + "</a></p>");
+        }
     %>
+
 </body>
 </html>
