@@ -14,7 +14,7 @@ import java.util.HashMap;
 public class ModelView {
     String url;
     HashMap <String,Object> data = new HashMap<>();
-    HashMap <String,Boolean> session = new HashMap<>();
+    HashMap <String,Object> session = new HashMap<>();
     boolean isJson;
 
     
@@ -46,15 +46,15 @@ public class ModelView {
         this.getData().put(cle, valueur);
     }
 
-    public HashMap<String, Boolean> getSession() {
+    public HashMap<String, Object> getSession() {
         return session;
     }
 
-    public void setSession(HashMap<String, Boolean> session) {
+    public void setSession(HashMap<String, Object> session) {
         this.session = session;
     }
 
-    public void addSession(String cle,Boolean valeur){
+    public void addSession(String cle,Object valeur){
         this.getSession().put(cle, valeur);
     }
 
